@@ -3,20 +3,11 @@ import { pool, entityNameToTable } from './db.js';
 
 const router = express.Router();
 
-const BLOCKED_IP_RANGES = [
-  /^127\./, /^10\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./,
-  /^169\.254\./, /^0\./, /^fc00:/i, /^fe80:/i, /^::1$/, /^localhost$/i,
-];
-
 function validateAirflowHost(host) {
   if (!host || typeof host !== 'string') throw new Error('Airflow URL is required');
   let url;
   try { url = new URL(host); } catch { throw new Error('Invalid Airflow URL format'); }
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Airflow URL must use http or https');
-  const hostname = url.hostname;
-  for (const pattern of BLOCKED_IP_RANGES) {
-    if (pattern.test(hostname)) throw new Error('Airflow URL points to a restricted network address');
-  }
   return url.origin;
 }
 
