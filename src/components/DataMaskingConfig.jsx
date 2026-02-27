@@ -57,7 +57,7 @@ export default function DataMaskingConfig({ value = [], onChange }) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-purple-600" />
+            <Shield className="w-5 h-5 text-[#0060AF]" />
             <CardTitle>Data Masking & Encryption</CardTitle>
           </div>
           <Button onClick={addRule} size="sm" className="gap-2">
@@ -85,9 +85,9 @@ export default function DataMaskingConfig({ value = [], onChange }) {
                   <div className="flex items-start gap-3">
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                      "bg-purple-100 dark:bg-purple-900"
+                      "bg-blue-100 dark:bg-blue-900/40"
                     )}>
-                      <MaskIcon className="w-5 h-5 text-purple-600 dark:text-purple-300" />
+                      <MaskIcon className="w-5 h-5 text-[#0060AF] dark:text-blue-300" />
                     </div>
                     <div className="flex-1 space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

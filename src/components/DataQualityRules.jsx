@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,6 +48,17 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
   const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
   const [colSearch, setColSearch] = useState("");
   const [colPage, setColPage] = useState(0);
+
+  useEffect(() => {
+    if (selectedObjects.length > 0) {
+      const newKey = `${selectedObjects[0].schema}.${selectedObjects[0].table}`;
+      if (newKey !== selectedTable) {
+        setSelectedTable(newKey);
+        setColSearch("");
+        setColPage(0);
+      }
+    }
+  }, [selectedObjects]);
   const [addColRule, setAddColRule] = useState(null); // {col}
   const [addDatasetRule, setAddDatasetRule] = useState(false);
   const [newRule, setNewRule] = useState({ rule: "not_null", parameter: "", action: "fail_job" });
@@ -127,19 +138,19 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
         <>
           {/* ── Dataset-level rules ── */}
           <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 bg-purple-50 border-b border-purple-100">
+            <div className="flex items-center justify-between px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800">
               <div className="flex items-center gap-1.5">
-                <TableProperties className="w-3.5 h-3.5 text-purple-600" />
-                <span className="text-xs font-semibold text-purple-700">Dataset-Level Rules ({datasetRules.length})</span>
+                <TableProperties className="w-3.5 h-3.5 text-[#0060AF] dark:text-blue-400" />
+                <span className="text-xs font-semibold text-[#0060AF] dark:text-blue-300">Dataset-Level Rules ({datasetRules.length})</span>
               </div>
-              <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2 text-purple-600 hover:text-purple-800"
+              <Button type="button" variant="ghost" size="sm" className="h-6 text-xs px-2 text-[#0060AF] hover:text-[#004d8c] dark:text-blue-400 dark:hover:text-blue-300"
                 onClick={() => { setAddDatasetRule(true); setNewRule({ rule: "row_count_min", parameter: "", action: "fail_job" }); }}>
                 <Plus className="w-3 h-3 mr-1" /> Add Rule
               </Button>
             </div>
 
             {addDatasetRule && (
-              <div className="px-3 py-2 bg-purple-50/50 border-b border-purple-100 grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+              <div className="px-3 py-2 bg-blue-50/50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-800 grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
                 <div>
                   <Label className="text-xs">Rule</Label>
                   <Select value={newRule.rule} onValueChange={v => setNewRule(r => ({ ...r, rule: v }))}>
@@ -177,7 +188,7 @@ export default function DataQualityRules({ selectedObjects = [], rules = {}, onC
                 {datasetRules.map((r, i) => (
                   <div key={i} className="grid grid-cols-[1fr_1fr_1fr_28px] gap-2 items-center px-3 py-1.5 text-xs">
                     <span className="text-slate-700">{DATASET_RULES.find(x => x.value === r.rule)?.label || r.rule}</span>
-                    <span className="text-purple-600 font-mono">{r.parameter || "—"}</span>
+                    <span className="text-[#0060AF] dark:text-blue-400 font-mono">{r.parameter || "—"}</span>
                     <span className={cn("font-medium", r.action === "fail_job" ? "text-red-600" : r.action === "warn_continue" ? "text-amber-600" : "text-orange-600")}>
                       {ACTIONS.find(a => a.value === r.action)?.label}
                     </span>

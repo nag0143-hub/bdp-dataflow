@@ -57,7 +57,7 @@ function DatasetCard({ ds, index, formData, setFormData }) {
     append: "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700",
     replace: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700",
     upsert: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700",
-    merge: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:border-purple-700",
+    merge: "bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-900/40 dark:text-cyan-300 dark:border-cyan-700",
   };
 
   return (
@@ -209,7 +209,7 @@ function FileCard({ file, index, onUpdate, onRemove }) {
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <FileText className="w-4 h-4 text-violet-400 shrink-0" />
+        <FileText className="w-4 h-4 text-[#0060AF] shrink-0" />
         <div className="flex-1 min-w-0">
           <span className="font-mono text-sm font-medium text-slate-800 truncate block">
             {file.file_name || "Untitled file"}
@@ -402,10 +402,10 @@ function SchemaDefinitionPanel({ formData, setFormData, platform }) {
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-2 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
       >
-        <Table2 className="w-4 h-4 text-violet-500 shrink-0" />
+        <Table2 className="w-4 h-4 text-[#0060AF] shrink-0" />
         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex-1">Schema Definition</span>
         {fileSchema.length > 0 && (
-          <span className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 rounded-full px-2 py-0.5 font-medium">
+          <span className="text-xs bg-blue-100 text-[#0060AF] dark:bg-blue-900/40 dark:text-blue-300 rounded-full px-2 py-0.5 font-medium">
             {fileSchema.length} column{fileSchema.length !== 1 ? "s" : ""}
           </span>
         )}
@@ -426,8 +426,8 @@ function SchemaDefinitionPanel({ formData, setFormData, platform }) {
                   onClick={() => { setMode(opt.value); setError(""); }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                     active
-                      ? "bg-violet-600 text-white border-violet-600"
-                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-violet-300"
+                      ? "bg-[#0060AF] text-white border-[#0060AF]"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-[#0060AF]/40"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />

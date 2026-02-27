@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 
 const NAV_SECTIONS = [
   { id: "cleansing", label: "Data Cleansing", icon: Zap, color: "text-amber-600" },
-  { id: "column_mapping", label: "Column Mapping", icon: Columns, color: "text-violet-600" },
+  { id: "column_mapping", label: "Column Mapping", icon: Columns, color: "text-[#0060AF]" },
   { id: "quality", label: "Data Quality", icon: FileText, color: "text-emerald-600" },
-  { id: "security", label: "Security & Masking", icon: Shield, color: "text-purple-600" },
+  { id: "security", label: "Security & Masking", icon: Shield, color: "text-[#0060AF]" },
   { id: "sla", label: "SLA Configuration", icon: ShieldCheck, color: "text-blue-600" },
 ];
 
@@ -152,13 +152,14 @@ export default function AdvancedTabContent({ formData, setFormData }) {
           {activeSection === "column_mapping" && (
             <Card className="p-4 h-full">
               <div className="flex items-center gap-2 mb-3">
-                <Columns className="w-4 h-4 text-violet-600" />
+                <Columns className="w-4 h-4 text-[#0060AF]" />
                 <h4 className="font-semibold text-sm">Column Mapping & Transformations</h4>
               </div>
               <ColumnMapper
                 compact
                 selectedObjects={[ds]}
                 mappings={formData.column_mappings}
+                connectionId={formData.source_connection_id}
                 onChange={(mappingsOrUpdater) => {
                   setFormData(prev => ({
                     ...prev,
@@ -175,7 +176,7 @@ export default function AdvancedTabContent({ formData, setFormData }) {
             <div className="space-y-4">
               <Card className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Shield className="w-4 h-4 text-purple-600" />
+                  <Shield className="w-4 h-4 text-[#0060AF]" />
                   <h4 className="font-semibold text-sm">Encryption & Data Masking</h4>
                 </div>
                 <DataMaskingConfig

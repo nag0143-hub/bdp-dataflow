@@ -165,7 +165,7 @@ export default function JobSpecTabPreview({ formData, connections, setFormData }
             <span className="ml-auto text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Built-in</span>
           )}
           {isCustomSelected && (
-            <span className="ml-auto text-[10px] font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Custom</span>
+            <span className="ml-auto text-[10px] font-semibold bg-blue-100 text-[#0060AF] dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full">Custom</span>
           )}
         </div>
         <div className="flex gap-2">

@@ -50,7 +50,7 @@ export default function CustomFunctions() {
   };
 
   const categoryBadge = (cat) => {
-    if (cat === "spark_udf") return <Badge className="bg-violet-100 text-violet-700 text-[10px]">Spark UDF</Badge>;
+    if (cat === "spark_udf") return <Badge className="bg-blue-100 text-[#0060AF] dark:bg-blue-900/40 dark:text-blue-300 text-[10px]">Spark UDF</Badge>;
     return <Badge className="bg-amber-100 text-amber-700 text-[10px]">Custom Expression</Badge>;
   };
 

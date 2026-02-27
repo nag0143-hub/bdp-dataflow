@@ -25,14 +25,14 @@ export default function CustomFunctionQuickAdd({ customFunctions, onFunctionAdde
     <div className="border border-slate-200 rounded-lg bg-slate-50/50 p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Zap className="w-3.5 h-3.5 text-violet-500" />
+          <Zap className="w-3.5 h-3.5 text-[#0060AF]" />
           <span className="text-xs font-semibold text-slate-700">Custom Functions</span>
           <span className="text-xs text-slate-400">({customFunctions.length} loaded)</span>
         </div>
         <Button
           size="sm"
           variant="outline"
-          className="h-6 text-xs gap-1 border-violet-300 text-violet-700 hover:bg-violet-50"
+          className="h-6 text-xs gap-1 border-[#0060AF]/30 text-[#0060AF] hover:bg-blue-50 dark:hover:bg-blue-900/20"
           onClick={() => setOpen(!open)}
         >
           {open ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
@@ -44,7 +44,7 @@ export default function CustomFunctionQuickAdd({ customFunctions, onFunctionAdde
       {customFunctions.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {customFunctions.map(fn => (
-            <Badge key={fn.value} className="text-[10px] bg-violet-100 text-violet-700 hover:bg-violet-100 font-mono">
+            <Badge key={fn.value} className="text-[10px] bg-blue-100 text-[#0060AF] dark:bg-blue-900/40 dark:text-blue-300 hover:bg-blue-100 font-mono">
               {fn.label}
             </Badge>
           ))}

@@ -293,12 +293,12 @@ export default function ScheduleSettings({ formData, setFormData }) {
                     onClick={() => update({ event_sensor_type: opt.value })}
                     className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-all ${
                       isSelected
-                        ? "bg-purple-50 border-purple-400 text-purple-900"
-                        : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-purple-300 text-slate-700 dark:text-slate-300"
+                        ? "bg-blue-50 dark:bg-blue-900/20 border-[#0060AF] text-slate-900 dark:text-slate-100"
+                        : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-[#0060AF]/40 text-slate-700 dark:text-slate-300"
                     }`}
                   >
                     <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${
-                      isSelected ? "border-purple-500 bg-purple-500" : "border-slate-300"
+                      isSelected ? "border-[#0060AF] bg-[#0060AF]" : "border-slate-300 dark:border-slate-600"
                     }`} />
                     <div>
                       <p className="text-sm font-medium">{opt.label}</p>
