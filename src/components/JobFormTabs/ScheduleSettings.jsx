@@ -465,24 +465,6 @@ export default function ScheduleSettings({ formData, setFormData }) {
           </div>
         )}
 
-        {/* DAG Callable Base Path */}
-        <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-2">
-          <Label className="text-sm font-semibold">DAG Callable Base Path</Label>
-          <p className="text-xs text-slate-500">
-            Base directory on the Airflow worker where Python callables and Spark application files are stored.
-            Used by dag-factory to resolve <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded text-[#0060AF]">python_callable_file</code> and <code className="bg-slate-100 dark:bg-slate-800 px-1 rounded text-[#0060AF]">application</code> paths in the generated DAG YAML.
-          </p>
-          <Input
-            value={formData.dag_callable_base_path || ""}
-            onChange={e => update({ dag_callable_base_path: e.target.value })}
-            placeholder="/data/dags/"
-            className="font-mono text-sm"
-          />
-          <p className="text-xs text-slate-400">
-            Default: <code className="font-mono">/data/dags/</code> — leave blank to use the default.
-          </p>
-        </div>
-
         {/* Advanced Features Toggle */}
         <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4">
           <div className="flex items-center justify-between">
