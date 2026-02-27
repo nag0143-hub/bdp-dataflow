@@ -1,5 +1,7 @@
 import express from 'express';
 import { pool, entityNameToTable } from './db.js';
+import fs from 'fs';
+import path from 'path';
 
 const router = express.Router();
 
@@ -23,8 +25,16 @@ async function getAirflowConnection(connectionId) {
   return rec;
 }
 
+function resolveHost(host) {
+  if (process.env.DOCKER_ENV === 'true' || process.env.RUNNING_IN_DOCKER === 'true') {
+    return host.replace(/\/\/localhost([:\/])/i, '//host.docker.internal$1')
+               .replace(/\/\/127\.0\.0\.1([:\/])/i, '//host.docker.internal$1');
+  }
+  return host;
+}
+
 async function airflowFetch(connection, apiPath, options = {}) {
-  const baseUrl = validateAirflowHost(connection.host);
+  const baseUrl = resolveHost(validateAirflowHost(connection.host));
 
   const url = `${baseUrl}/api/v1${apiPath}`;
   const token = connection.api_token || connection.password || connection.username;
@@ -83,7 +93,7 @@ router.get('/connections', async (req, res) => {
 
 router.post('/connections', async (req, res) => {
   try {
-    const { name, host, auth_method, username, password, api_token } = req.body;
+    const { name, host, auth_method, username, password, api_token, dags_folder } = req.body;
     if (!name?.trim() || !host?.trim()) return res.status(400).json({ error: 'Name and Airflow URL are required' });
 
     const validatedHost = validateAirflowHost(host);
@@ -92,6 +102,7 @@ router.post('/connections', async (req, res) => {
     const data = {
       name, host: validatedHost, platform: 'airflow', connection_type: 'orchestrator',
       auth_method: auth_method || 'bearer', username, password, api_token, status: 'active',
+      dags_folder: dags_folder || '',
     };
     const result = await pool.query(
       `INSERT INTO "${table}" (data, created_by) VALUES ($1, $2) RETURNING *`,
@@ -280,7 +291,7 @@ router.get('/:connectionId/dags/:dagId/dagRuns/:runId/taskInstances/:taskId/logs
     if (!conn) return res.status(404).json({ error: 'Connection not found' });
 
     const { dagId, runId, taskId, tryNumber } = req.params;
-    const baseUrl = (conn.host || '').replace(/\/+$/, '');
+    const baseUrl = resolveHost((conn.host || '').replace(/\/+$/, ''));
     const url = `${baseUrl}/api/v1/dags/${encodeURIComponent(dagId)}/dagRuns/${encodeURIComponent(runId)}/taskInstances/${encodeURIComponent(taskId)}/logs/${tryNumber}`;
     const token = conn.api_token || conn.password || conn.username;
     const headers = { 'Accept': 'text/plain' };
@@ -329,6 +340,100 @@ router.patch('/:connectionId/dags/:dagId', async (req, res) => {
     res.json({ dag_id: data.dag_id, is_paused: data.is_paused });
   } catch (err) {
     res.status(502).json({ error: err.message });
+  }
+});
+
+router.post('/:connectionId/dags/checkin', async (req, res) => {
+  try {
+    const conn = await getAirflowConnection(req.params.connectionId);
+    if (!conn) return res.status(404).json({ error: 'Connection not found' });
+
+    const { filename, content, subfolder } = req.body;
+    if (!filename?.trim()) return res.status(400).json({ error: 'Filename is required' });
+    if (!content?.trim()) return res.status(400).json({ error: 'DAG content is required' });
+
+    const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    if (!safeFilename.endsWith('.yaml') && !safeFilename.endsWith('.yml') && !safeFilename.endsWith('.py')) {
+      return res.status(400).json({ error: 'Filename must end with .yaml, .yml, or .py' });
+    }
+
+    const dagsFolder = path.resolve(conn.dags_folder || process.env.AIRFLOW_DAGS_FOLDER || '/opt/airflow/dags');
+    let targetDir = dagsFolder;
+    if (subfolder?.trim()) {
+      const safeSub = subfolder.replace(/\.\./g, '').replace(/^[/\\]+/, '').replace(/[^a-zA-Z0-9/_-]/g, '_');
+      targetDir = path.resolve(dagsFolder, safeSub);
+    }
+
+    if (!targetDir.startsWith(dagsFolder)) {
+      return res.status(400).json({ error: 'Subfolder must be within the DAGs folder' });
+    }
+
+    await fs.promises.mkdir(targetDir, { recursive: true });
+    const filePath = path.resolve(targetDir, safeFilename);
+    if (!filePath.startsWith(dagsFolder)) {
+      return res.status(400).json({ error: 'File path must be within the DAGs folder' });
+    }
+    await fs.promises.writeFile(filePath, content, 'utf8');
+
+    res.json({
+      success: true,
+      file_path: filePath,
+      dags_folder: dagsFolder,
+      message: `DAG file written to ${filePath}`,
+    });
+  } catch (err) {
+    if (err.code === 'EACCES') {
+      res.status(403).json({ error: `Permission denied writing to DAGs folder. Ensure the application has write access to the configured path.` });
+    } else if (err.code === 'ENOENT') {
+      res.status(400).json({ error: `DAGs folder path does not exist and could not be created: ${err.message}` });
+    } else {
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+router.get('/:connectionId/dags-folder', async (req, res) => {
+  try {
+    const conn = await getAirflowConnection(req.params.connectionId);
+    if (!conn) return res.status(404).json({ error: 'Connection not found' });
+
+    const dagsFolder = path.resolve(conn.dags_folder || process.env.AIRFLOW_DAGS_FOLDER || '/opt/airflow/dags');
+    let exists = false;
+    let writable = false;
+    let files = [];
+    try {
+      await fs.promises.access(dagsFolder, fs.constants.R_OK);
+      exists = true;
+      await fs.promises.access(dagsFolder, fs.constants.W_OK);
+      writable = true;
+      const entries = await fs.promises.readdir(dagsFolder);
+      files = entries.filter(f => f.endsWith('.yaml') || f.endsWith('.yml') || f.endsWith('.py')).sort();
+    } catch { }
+
+    res.json({ dags_folder: dagsFolder, exists, writable, dag_files: files });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.delete('/:connectionId/dags-folder/:filename', async (req, res) => {
+  try {
+    const conn = await getAirflowConnection(req.params.connectionId);
+    if (!conn) return res.status(404).json({ error: 'Connection not found' });
+
+    const dagsFolder = path.resolve(conn.dags_folder || process.env.AIRFLOW_DAGS_FOLDER || '/opt/airflow/dags');
+    const safeFilename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = path.resolve(dagsFolder, safeFilename);
+
+    if (!filePath.startsWith(dagsFolder)) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+
+    await fs.promises.unlink(filePath);
+    res.json({ success: true, message: `Deleted ${safeFilename}` });
+  } catch (err) {
+    if (err.code === 'ENOENT') res.status(404).json({ error: 'File not found' });
+    else res.status(500).json({ error: err.message });
   }
 });
 

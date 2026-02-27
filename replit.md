@@ -86,6 +86,7 @@ Pipeline, Connection, PipelineRun, ActivityLog, AuditLog, IngestionJob, AirflowD
 - **No Data Lineage** — lineage pages, components, and spec generators fully removed
 - **Supported Drivers**: PostgreSQL (pg), MySQL (mysql2), SQL Server (mssql), MongoDB (mongodb), Oracle (oracledb — requires Instant Client), file system paths
 - **Airflow Integration**: Backend proxy (`/api/airflow/*`) for secure Airflow REST API calls — supports DAG listing, run history, task instances, log retrieval, DAG triggering, pause/unpause. Credentials never exposed to frontend. Orchestration data displayed natively on Dashboard (summary) and Pipelines (full detail) pages via `OrchestrationPanel` component — no separate Airflow tab.
+- **Admin DAG Check-In**: Admins can push DAG files (YAML/Python) directly to Airflow's DAG bag folder for local testing (bypassing GitLab CI/CD). Configurable `dags_folder` path per Airflow connection. Endpoints: `POST /:connectionId/dags/checkin` (write file), `GET /:connectionId/dags-folder` (list files + status), `DELETE /:connectionId/dags-folder/:filename` (remove file). Path traversal protection via `path.resolve` + prefix validation. UI: collapsible `DAGCheckinPanel` on the Airflow page with file upload, paste content, subfolder support, and existing file management.
 
 ## Environment Variables
 

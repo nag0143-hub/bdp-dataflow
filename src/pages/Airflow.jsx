@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   RefreshCw, Plus, Search, Play, Pause, ExternalLink, X, AlertCircle,
-  CheckCircle2, Clock, XCircle, Loader2, ChevronDown, ChevronUp, FileText, Zap
+  CheckCircle2, Clock, XCircle, Loader2, ChevronDown, ChevronUp, FileText, Zap,
+  Upload, Trash2, FolderOpen, File
 } from "lucide-react";
 
 const API = '/api/airflow';
@@ -284,7 +286,7 @@ function DAGCard({ dag, connectionId, airflowHost, onRefresh }) {
 }
 
 function AddConnectionForm({ onAdded, onCancel }) {
-  const [form, setForm] = useState({ name: '', host: '', auth_method: 'bearer', api_token: '', username: '', password: '' });
+  const [form, setForm] = useState({ name: '', host: '', auth_method: 'bearer', api_token: '', username: '', password: '', dags_folder: '' });
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -378,6 +380,11 @@ function AddConnectionForm({ onAdded, onCancel }) {
             </div>
           </div>
         )}
+        <div>
+          <Label className="text-sm">DAGs Folder Path (for admin check-in)</Label>
+          <Input placeholder="/opt/airflow/dags" value={form.dags_folder} onChange={e => setForm({ ...form, dags_folder: e.target.value })} />
+          <p className="text-xs text-slate-400 mt-1">Server-side path to Airflow's DAG bag folder. Used for directly checking in DAG files for testing.</p>
+        </div>
         {testResult && (
           <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg border ${testResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
             {testResult.success ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
@@ -394,6 +401,195 @@ function AddConnectionForm({ onAdded, onCancel }) {
           </Button>
         </div>
       </CardContent>
+    </Card>
+  );
+}
+
+function DAGCheckinPanel({ connectionId }) {
+  const [filename, setFilename] = useState('');
+  const [content, setContent] = useState('');
+  const [subfolder, setSubfolder] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [folderInfo, setFolderInfo] = useState(null);
+  const [loadingFolder, setLoadingFolder] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const loadFolderInfo = useCallback(async () => {
+    if (!connectionId) return;
+    setLoadingFolder(true);
+    try {
+      const resp = await fetch(`${API}/${connectionId}/dags-folder`);
+      const data = await resp.json();
+      setFolderInfo(data);
+    } catch { setFolderInfo(null); }
+    finally { setLoadingFolder(false); }
+  }, [connectionId]);
+
+  useEffect(() => {
+    if (expanded) loadFolderInfo();
+  }, [expanded, connectionId, loadFolderInfo]);
+
+  const handleCheckin = async () => {
+    if (!filename.trim()) { toast.error('Filename is required'); return; }
+    if (!content.trim()) { toast.error('DAG content is required'); return; }
+    setSubmitting(true);
+    try {
+      const resp = await fetch(`${API}/${connectionId}/dags/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: filename.trim(), content, subfolder: subfolder.trim() }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        toast.success(data.message);
+        setFilename('');
+        setContent('');
+        setSubfolder('');
+        loadFolderInfo();
+      } else {
+        toast.error(data.error || 'Failed to check in DAG');
+      }
+    } catch (err) { toast.error(err.message); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleDelete = async (fname) => {
+    if (!confirm(`Delete "${fname}" from the DAGs folder?`)) return;
+    try {
+      const resp = await fetch(`${API}/${connectionId}/dags-folder/${encodeURIComponent(fname)}`, { method: 'DELETE' });
+      const data = await resp.json();
+      if (resp.ok) { toast.success(data.message); loadFolderInfo(); }
+      else { toast.error(data.error || 'Failed to delete'); }
+    } catch (err) { toast.error(err.message); }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!filename.trim()) setFilename(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => setContent(ev.target.result);
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  return (
+    <Card className="border-slate-200 dark:border-slate-700">
+      <div
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <Upload className="w-5 h-5 text-[#0060AF]" />
+        <div className="flex-1">
+          <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Admin DAG Check-In</h3>
+          <p className="text-xs text-slate-400">Push DAG files directly to Airflow's DAG bag folder for testing</p>
+        </div>
+        {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </div>
+      {expanded && (
+        <CardContent className="px-4 pb-4 pt-0 space-y-4">
+          {loadingFolder ? (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+            </div>
+          ) : folderInfo && (
+            <div className="flex items-start gap-3 text-xs px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800">
+              <FolderOpen className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-slate-700 dark:text-slate-300 truncate">{folderInfo.dags_folder}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  {folderInfo.exists
+                    ? <span className="text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Path exists</span>
+                    : <span className="text-red-500 flex items-center gap-1"><XCircle className="w-3 h-3" /> Path not found</span>
+                  }
+                  {folderInfo.writable
+                    ? <span className="text-emerald-600">Writable</span>
+                    : folderInfo.exists && <span className="text-amber-600">Read-only</span>
+                  }
+                  {folderInfo.dag_files?.length > 0 && (
+                    <span className="text-slate-500">{folderInfo.dag_files.length} DAG file{folderInfo.dag_files.length !== 1 ? 's' : ''}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {folderInfo?.dag_files?.length > 0 && (
+            <div className="border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden">
+              <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600">
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Existing DAG Files</span>
+              </div>
+              <div className="max-h-40 overflow-y-auto">
+                {folderInfo.dag_files.map(f => (
+                  <div key={f} className="flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-xs border-b last:border-b-0 border-slate-100 dark:border-slate-700">
+                    <span className="font-mono text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <File className="w-3 h-3 text-slate-400" />{f}
+                    </span>
+                    <button
+                      onClick={() => handleDelete(f)}
+                      className="text-red-400 hover:text-red-600 p-0.5 rounded"
+                      title="Delete file"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Filename *</Label>
+              <Input
+                placeholder="my_dag.yaml"
+                value={filename}
+                onChange={e => setFilename(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Subfolder (optional)</Label>
+              <Input
+                placeholder="e.g. team_a"
+                value={subfolder}
+                onChange={e => setSubfolder(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs">DAG Content *</Label>
+              <label className="inline-flex items-center gap-1.5 text-xs text-[#0060AF] hover:text-[#004d8c] cursor-pointer font-medium">
+                <Upload className="w-3 h-3" /> Upload file
+                <input type="file" accept=".yaml,.yml,.py" className="hidden" onChange={handleFileUpload} />
+              </label>
+            </div>
+            <Textarea
+              placeholder="Paste your DAG YAML or Python content here..."
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              className="font-mono text-xs min-h-[160px] resize-y"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={loadFolderInfo} disabled={loadingFolder}>
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loadingFolder ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button size="sm" onClick={handleCheckin} disabled={submitting || !filename.trim() || !content.trim()}>
+              {submitting ? (
+                <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Checking in...</>
+              ) : (
+                <><Upload className="w-3.5 h-3.5 mr-1.5" /> Check In DAG</>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }
@@ -543,6 +739,8 @@ export default function Airflow() {
               </CardContent>
             </Card>
           </div>
+
+          <DAGCheckinPanel connectionId={selectedConnId} />
 
           {loadingDags && (
             <div className="flex items-center justify-center py-12">
