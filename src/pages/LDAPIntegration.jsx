@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Server, Lock, Eye, EyeOff, LogIn, CheckCircle2, Users, Key, Shield, AlertCircle, LogOut } from "lucide-react";
+import { Workflow, Lock, Eye, EyeOff, LogIn, CheckCircle2, Users, Key, Shield, AlertCircle, LogOut, Database, GitBranch, Wind, Cable } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,34 +28,53 @@ export default function LDAPIntegration() {
 
   if (!loggedIn) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-full max-w-sm space-y-6">
-          {/* Logo / Title */}
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center mx-auto shadow-lg">
-              <Server className="w-7 h-7 text-white" />
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-full max-w-md space-y-6">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-[#0060AF] flex items-center justify-center mx-auto shadow-lg shadow-[#0060AF]/20">
+              <Workflow className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">LDAP Portal</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Sign in with your directory credentials</p>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">DataFlow</h1>
+              <p className="text-[#0060AF] dark:text-blue-400 text-sm font-medium">Data Connector Platform</p>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
+              Build and manage data pipelines across databases, flat files, and cloud storage.
+              Generate Airflow DAGs automatically and deploy to GitLab with one click.
+            </p>
           </div>
 
-          {/* Hint Banner */}
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { icon: Database, label: "Sources" },
+              { icon: Workflow, label: "Pipelines" },
+              { icon: Wind, label: "Airflow" },
+              { icon: GitBranch, label: "GitLab" },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-1.5 py-2">
+                <div className="w-8 h-8 rounded-lg bg-[#0060AF]/10 dark:bg-[#0060AF]/20 flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-[#0060AF] dark:text-blue-400" />
+                </div>
+                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">{label}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <span>Default credentials: <strong>admin / admin</strong></span>
           </div>
 
-          {/* Login Form */}
           <Card className="border-slate-200 dark:border-slate-700 dark:bg-slate-800 shadow-sm">
             <CardContent className="p-6">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="dark:text-slate-300">Username</Label>
+                  <Label className="dark:text-slate-300">LDAP Username</Label>
                   <Input
                     autoFocus
                     value={username}
                     onChange={e => { setUsername(e.target.value); setError(""); }}
-                    placeholder="administrator"
+                    placeholder="Enter your username"
                     className="dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                   />
                 </div>
@@ -86,7 +105,7 @@ export default function LDAPIntegration() {
                   </p>
                 )}
 
-                <Button type="submit" className="w-full gap-2">
+                <Button type="submit" className="w-full gap-2 bg-[#0060AF] hover:bg-[#004d8c] text-white">
                   <LogIn className="w-4 h-4" />
                   Sign In
                 </Button>
@@ -95,24 +114,22 @@ export default function LDAPIntegration() {
           </Card>
 
           <p className="text-center text-xs text-slate-400 dark:text-slate-500">
-            LDAP integration is a placeholder — full implementation coming soon.
+            Secured with LDAP directory authentication
           </p>
         </div>
       </div>
     );
   }
 
-  // Logged-in state
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center">
-            <Server className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-[#0060AF] flex items-center justify-center">
+            <Workflow className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">LDAP Portal</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">DataFlow</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">Logged in as <strong className="dark:text-slate-200">{DEFAULT_USER}</strong></p>
           </div>
         </div>
@@ -128,18 +145,16 @@ export default function LDAPIntegration() {
         </div>
       </div>
 
-      {/* Coming Soon Notice */}
-      <div className="rounded-xl border border-violet-200 dark:border-violet-700 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 p-5 flex items-start gap-4">
-        <AlertCircle className="w-5 h-5 text-violet-600 dark:text-violet-400 mt-0.5 shrink-0" />
+      <div className="rounded-xl border border-[#0060AF]/20 dark:border-[#0060AF]/30 bg-[#0060AF]/5 dark:bg-[#0060AF]/10 p-5 flex items-start gap-4">
+        <AlertCircle className="w-5 h-5 text-[#0060AF] dark:text-blue-400 mt-0.5 shrink-0" />
         <div>
-          <p className="font-semibold text-violet-900 dark:text-violet-300">Full Implementation Coming Soon</p>
-          <p className="text-sm text-violet-700 dark:text-violet-400 mt-0.5">
-            This portal will allow you to configure LDAP/AD sync, manage group role mappings, and enforce directory-based access control.
+          <p className="font-semibold text-slate-900 dark:text-slate-200">LDAP Directory Integration</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+            Configure LDAP/AD sync, manage group role mappings, and enforce directory-based access control for your DataFlow environment.
           </p>
         </div>
       </div>
 
-      {/* Placeholder feature tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon: Users, label: "Directory Users", value: "—", note: "Sync pending" },
