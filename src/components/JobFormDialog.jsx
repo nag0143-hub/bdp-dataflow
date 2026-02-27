@@ -227,7 +227,7 @@ export default function JobFormDialog({
       <DialogContent
         preventClose={deployStatus === "deploying"}
         className={`overflow-y-auto transition-all duration-300 ${
-          isExpanded || activeTab === "review" || activeTab === "deploy"
+          isExpanded || activeTab === "review" || activeTab === "deploy" || activeTab === "advanced"
             ? 'max-w-6xl max-h-[96vh] w-[95vw] h-[95vh]'
             : 'max-w-2xl max-h-[92vh] w-auto h-auto'
         }`}
@@ -257,7 +257,7 @@ export default function JobFormDialog({
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className={`overflow-y-auto ${
-              isExpanded || activeTab === "review" || activeTab === "deploy"
+              isExpanded || activeTab === "review" || activeTab === "deploy" || activeTab === "advanced"
                 ? 'max-h-[calc(95vh-300px)]'
                 : 'max-h-[calc(92vh-320px)]'
             }`}>

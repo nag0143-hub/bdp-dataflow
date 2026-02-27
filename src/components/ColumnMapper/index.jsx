@@ -55,7 +55,7 @@ function extractLength(dataType) {
   return match ? match[1] : "";
 }
 
-export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange }) {
+export default function ColumnMapper({ selectedObjects = [], mappings = [], onChange, compact = false }) {
     const [selectedTable, setSelectedTable] = useState(selectedObjects[0] ? `${selectedObjects[0].schema}.${selectedObjects[0].table}` : "");
     const [selectedDatasets, setSelectedDatasets] = useState(new Set(selectedObjects.map(o => `${o.schema}.${o.table}`)));
     const [search, setSearch] = useState("");
@@ -314,69 +314,67 @@ export default function ColumnMapper({ selectedObjects = [], mappings = [], onCh
 
   return (
     <div className="space-y-4">
-      {/* Custom Functions quick panel */}
-      <CustomFunctionQuickAdd
-        customFunctions={customFunctions}
-        onFunctionAdded={loadCustomFunctions}
-      />
+      {!compact && (
+        <>
+          <CustomFunctionQuickAdd
+            customFunctions={customFunctions}
+            onFunctionAdded={loadCustomFunctions}
+          />
 
-      {/* Dataset-level settings */}
-      <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Selection</h3>
-        <div className="space-y-4">
-          {/* Multi-select datasets */}
-          <div className="border border-slate-300 rounded-lg bg-white p-3">
-            <div className="text-xs font-medium text-slate-700 mb-2">Select Datasets ({selectedDatasets.size})</div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {selectedObjects.map(obj => {
-                const tableKey = `${obj.schema}.${obj.table}`;
-                const isSelected = selectedDatasets.has(tableKey);
-                return (
-                  <label key={tableKey} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:bg-slate-50 p-2 rounded">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={checked => {
-                        const newSet = new Set(selectedDatasets);
-                        if (checked) {
-                          newSet.add(tableKey);
-                        } else {
-                          newSet.delete(tableKey);
-                        }
-                        setSelectedDatasets(newSet);
-                        if (!newSet.has(selectedTable)) {
-                          setSelectedTable(Array.from(newSet)[0] || "");
-                        }
-                      }}
-                    />
-                    <span className="font-mono">{obj.schema}.{obj.table}</span>
-                  </label>
-                );
-              })}
+          <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4">Dataset Selection</h3>
+            <div className="space-y-4">
+              <div className="border border-slate-300 rounded-lg bg-white p-3">
+                <div className="text-xs font-medium text-slate-700 mb-2">Select Datasets ({selectedDatasets.size})</div>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {selectedObjects.map(obj => {
+                    const tableKey = `${obj.schema}.${obj.table}`;
+                    const isSelected = selectedDatasets.has(tableKey);
+                    return (
+                      <label key={tableKey} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:bg-slate-50 p-2 rounded">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={checked => {
+                            const newSet = new Set(selectedDatasets);
+                            if (checked) {
+                              newSet.add(tableKey);
+                            } else {
+                              newSet.delete(tableKey);
+                            }
+                            setSelectedDatasets(newSet);
+                            if (!newSet.has(selectedTable)) {
+                              setSelectedTable(Array.from(newSet)[0] || "");
+                            }
+                          }}
+                        />
+                        <span className="font-mono">{obj.schema}.{obj.table}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {selectedTable && (
+                <div>
+                  <Label className="text-xs mb-2 block">Edit Table</Label>
+                  <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a table to edit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from(selectedDatasets).map(tableKey => (
+                        <SelectItem key={tableKey} value={tableKey}>
+                          {tableKey}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Current table editor */}
-          {selectedTable && (
-            <div>
-              <Label className="text-xs mb-2 block">Edit Table</Label>
-              <Select value={selectedTable} onValueChange={v => { setSelectedTable(v); setSearch(""); setPage(0); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a table to edit" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from(selectedDatasets).map(tableKey => (
-                    <SelectItem key={tableKey} value={tableKey}>
-                      {tableKey}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          
-        </div>
-      </div>
+        </>
+      )}
 
       {selectedTable && (
         <>

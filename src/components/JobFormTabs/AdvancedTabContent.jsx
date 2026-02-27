@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ShieldCheck, Zap, Lock, FileText, Shield, Columns } from "lucide-react";
 import ColumnMapper from "@/components/ColumnMapper";
@@ -14,8 +13,8 @@ import { cn } from "@/lib/utils";
 
 const NAV_SECTIONS = [
   { id: "cleansing", label: "Data Cleansing", icon: Zap, color: "text-amber-600" },
-  { id: "quality", label: "Data Quality", icon: FileText, color: "text-emerald-600" },
   { id: "column_mapping", label: "Column Mapping", icon: Columns, color: "text-violet-600" },
+  { id: "quality", label: "Data Quality", icon: FileText, color: "text-emerald-600" },
   { id: "security", label: "Security & Masking", icon: Shield, color: "text-purple-600" },
   { id: "sla", label: "SLA Configuration", icon: ShieldCheck, color: "text-blue-600" },
 ];
@@ -66,15 +65,27 @@ export default function AdvancedTabContent({ formData, setFormData }) {
 
   return (
     <div className="space-y-3">
-      <Tabs value={activeDataset} onValueChange={setActiveDataset} className="w-full">
-        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Math.min(formData.selected_datasets.length, 6)}, 1fr)` }}>
-          {formData.selected_datasets.map((d) => (
-            <TabsTrigger key={datasetKey(d)} value={datasetKey(d)} className="text-xs">
+      <div className="flex flex-wrap gap-1.5">
+        {formData.selected_datasets.map((d) => {
+          const key = datasetKey(d);
+          const isActive = activeDataset === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveDataset(key)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                isActive
+                  ? "bg-[#0060AF] text-white shadow-sm shadow-[#0060AF]/20"
+                  : "bg-[#0060AF]/10 text-[#0060AF] hover:bg-[#0060AF]/20 dark:bg-[#0060AF]/20 dark:text-blue-300 dark:hover:bg-[#0060AF]/30"
+              )}
+            >
               {d.table}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="flex gap-3 min-h-[400px]">
         <nav className="w-[200px] shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-2 space-y-1">
@@ -145,6 +156,7 @@ export default function AdvancedTabContent({ formData, setFormData }) {
                 <h4 className="font-semibold text-sm">Column Mapping & Transformations</h4>
               </div>
               <ColumnMapper
+                compact
                 selectedObjects={[ds]}
                 mappings={formData.column_mappings}
                 onChange={(mappingsOrUpdater) => {
